@@ -1,0 +1,19 @@
+sbatch -c 24 -J=fastqc --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && fastqc -o stats --extract --threads 24 84_15_1.fastq > stats/log.out 2> log.err && conda deactivate"
+
+sbatch -c 24 --job-name=minimap2-index --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && minimap2 -x map-ont -t 24 -d grch38-ont.mmi grch38.fa"
+
+sbatch -c 24 --job-name=minimap2 --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && minimap2 -ax map-ont -t 24 /home_pfs/data/genome/human/grch38_decoy/grch38_decoy-ont.mmi ../../fastq/84_15_1.fastq > 84_15_1.sam"
+
+sbatch -c 24 --job-name=samtools --wrap="samtools view --threads 12 -b 84_15_1.sam | samtools sort --threads 12 -o 84_15_1.bam"
+
+sbatch -c 24 --job-name=samtools --wrap="samtools index 84_15_1.bam"
+
+sudo docker run -v /data:/data -w $(pwd -P) google/deepvariant:0.10.0 /opt/deepvariant/bin/run_deepvariant --model_type=WGS --ref=/data/genome/human/grch38_decoy/grch38_decoy.fa --reads=84_15_1.bam --output_vcf=84_15_1.deepvariant.vcf --num_shards=24 1> 84_15_1.vcf.out 2> 84_15_1.vcf.err
+
+sbatch -c 24 --job-name=qualimap --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && qualimap bamqc --java-mem-size=100G -bam 84_15_1.bam --paint-chromosome-limits -outdir stats -outformat PDF:HTML -nt 24 > log.out 2> log.err"
+
+sbatch -c 48 --job-name=canu --partition=gpu --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && canu -p corona -d . genomeSize=29900 maxMemory=120G -nanopore-raw ../../fastq/bmc5.fastq > canu.log 2> canu.err"
+
+sbatch -c 24 --partition=gpu --job-name=minimap2-index --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && minimap2 -x map-ont -t 24 -d /home_pfs/data/projects/virseq/corona/reference/sars_cov_2/sars_cov_2.mmi /home_pfs/data/projects/virseq/corona/reference/sars_cov_2/sars_cov_2.fa"
+
+sbatch -c 24 --partition=gpu --job-name=minimap2 --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && minimap2 -ax map-ont -t 24 /home_pfs/data/projects/virseq/corona/reference/sars_cov_2/sars_cov_2.mmi ../../../fastq/bmc5.fastq > bmc5.sam"

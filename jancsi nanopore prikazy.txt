@@ -17,3 +17,5 @@ sbatch -c 48 --job-name=canu --partition=gpu --wrap="source /home_pfs/Miniconda/
 sbatch -c 24 --partition=gpu --job-name=minimap2-index --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && minimap2 -x map-ont -t 24 -d /home_pfs/data/projects/virseq/corona/reference/sars_cov_2/sars_cov_2.mmi /home_pfs/data/projects/virseq/corona/reference/sars_cov_2/sars_cov_2.fa"
 
 sbatch -c 24 --partition=gpu --job-name=minimap2 --wrap="source /home_pfs/Miniconda/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && minimap2 -ax map-ont -t 24 /home_pfs/data/projects/virseq/corona/reference/sars_cov_2/sars_cov_2.mmi ../../../fastq/bmc5.fastq > bmc5.sam"
+
+sbatch -c 24 --partition=compute,gpu,mic,viz --job-name=flye --wrap="source /home_pfs/miniconda3/etc/profile.d/conda.sh && conda activate wkrampl-nanopore && flye --threads 24 --nano-hq fastq/guppy-5.0.11/original/Crono_KMB33.fastq --out-dir assembly/flye/guppy-5.0.11/original"
